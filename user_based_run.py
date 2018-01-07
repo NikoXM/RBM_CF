@@ -17,6 +17,7 @@ tf.flags.DEFINE_float("l_w", 0.01, "")
 tf.flags.DEFINE_float("l_h", 0.01, "")
 tf.flags.DEFINE_string("train_path", "ml-100k/u1.base", "")
 tf.flags.DEFINE_string("test_path", "ml-100k/u1.test", "")
+tf.flags.DEFINE_string("result_path", "result.txt","")
 tf.flags.DEFINE_string("sep", "\t", "")
 FLAGS = tf.flags.FLAGS
 
@@ -122,4 +123,5 @@ if __name__ == "__main__":
         mae = vabs(distances).mean()
         rmse = sqrt((distances ** 2).mean())
         
-        print("\nepoch: {}, mae/rmse: {}/{}".format(e, mae, rmse))
+        with open(FLAGS.result_path, 'w') as file:
+            file.write("epoch: {}, mae/rmse: {}/{}\n".format(e, mae, rmse))

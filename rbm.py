@@ -11,7 +11,7 @@ class RBM(object):
         self.num_hidden = num_hidden
         self.create_placeholder()
         self.add_model()
-        self.optimizer = self.train(self.input)
+        self.optimizer = self.train(self.input, T=3)
 
     def create_placeholder(self):
         self.input = tf.placeholder(dtype=tf.float32, shape=[None, self.num_visble],
