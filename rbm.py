@@ -35,6 +35,11 @@ class RBM(object):
                                          dtype=tf.float32)
 
     def sample_hidden(self, vis):
+        '''
+        function: sample the all hidden nodes by applying visible nodes
+        parameters: vis: all visible nodes
+        return: all sampled hidden nodes
+        '''
         activations = tf.nn.sigmoid(tf.matmul(vis, self.weights) + self.hbias)
         h1_sample = tf.nn.relu(tf.sign(activations - tf.random_uniform(tf.shape(activations))))
         return h1_sample, activations
@@ -58,19 +63,26 @@ class RBM(object):
         h2, h2a = self.sample_hidden(v2)
         return [v1, h1, h1a,  v2, v2a, h2, h2a]
 
-    def gradient(self, v1, h1, v2, h2a, masks):
-        
+    def gradient(self, v1, h1, v2a, h2a, masks):
+        '''
+        usage: 
+        v1:     S * 5M
+        h1:     S * N
+        v2a:     S * 5M
+        h2a:    S * N
+        masks:  S * 5M
+        '''
         #gw = tf.matmul(tf.transpose(v1), h1) - tf.matmul(tf.transpose(v2), h2a)
         #gbv = tf.reduce_mean(v1 - v2, 0) 
         #gbh = tf.reduce_mean(h1 - h2a, 0)
-        v1h1_mask = outer(masks, h1)
-        gw = tf.reduce_mean(outer(v1, h1) * v1h1_mask - outer(v2, h2a) * v1h1_mask,axis= 0)
-        gbv = tf.reduce_mean((v1 * masks) - (v2 * masks),axis= 0)
+        v1h1_mask = outer(masks, h1) # v1h1_mask: S * 5M * N
+        gw = tf.reduce_mean(outer(v1, h1) * v1h1_mask - outer(v2a, h2a) * v1h1_mask, axis = 0)
+        gbv = tf.reduce_mean((v1 * masks) - (v2a * masks), axis = 0)
         gbh = tf.reduce_mean(h1 - h2a, axis = 0)
         return [gw, gbv, gbh]
     
-    def train(self, vis,  w_lr=0.001, v_lr=0.001,
-                h_lr=0.001, decay=0.0000, T=1,momentum=0.9):
+    def train(self, vis, w_lr=0.001, v_lr=0.001,
+                h_lr=0.001, decay=0.0000, T=1, momentum=0.9):
         v1, h1, h1a, v2, v2a, h2, h2a = self.contrastive_divergence(vis)
         for _ in range(T-1):
             v1, h1, h1a, v2, v2a, h2, h2a = self.contrastive_divergence(v2)
@@ -89,6 +101,7 @@ class RBM(object):
         optimizer = (update_w, update_bh, update_bv, update_prev_gw,
                      update_prev_gbh, update_prev_gbv)
         return optimizer
+        
 
 
 

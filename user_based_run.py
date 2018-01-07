@@ -20,6 +20,13 @@ tf.flags.DEFINE_string("test_path", "ml-100k/u1.test", "")
 tf.flags.DEFINE_string("sep", "\t", "")
 FLAGS = tf.flags.FLAGS
 
+'''
+comments:
+train dataset/test dateset : "ml-100k/u1.base"/"ml-100k/u1.test"; columns: user_id, movie_id, ratings, timestamp
+profiles -- type: dict -- key: user_id, value: (movie_id, rating)
+    :store ratings of movies from every user
+
+'''
 
 if __name__ == "__main__":
     all_users, all_movies, tests = load_dataset(FLAGS.train_path, FLAGS.test_path,
@@ -44,6 +51,7 @@ if __name__ == "__main__":
             # create needed binary vectors
             bin_profiles = {}
             masks = {}
+            # only consider the movie that users have iteracted 
             for userid in batch:
                 user_profile = np.array([0.] * len(all_movies))
                 mask = [0] * (len(all_movies) * 5)
@@ -57,11 +65,14 @@ if __name__ == "__main__":
 
             profile_batch = [bin_profiles[el] for el in batch]
             masks_batch = [masks[id] for id in batch]
-            train_batch = np.array(profile_batch).reshape(size,
-                                                          len(all_movies * 5))
+            
+            # train_batch = np.array(profile_batch).reshape(size,
+                                                        #   len(all_movies * 5))
+            train_batch = np.array(profile_batch).reshape(size, len(all_movies) * 5)
             train_masks = np.array(masks_batch).reshape(size,
                                                         len(all_movies) * 5)
-            _  = sess.run([rbm.optimizer], feed_dict={rbm.input: train_batch, rbm.mask : masks_batch})
+            # _  = sess.run([rbm.optimizer], feed_dict={rbm.input: train_batch, rbm.mask : masks_batch})
+            _  = sess.run([rbm.optimizer], feed_dict={rbm.input: train_batch, rbm.mask : train_masks}) 
             sys.stdout.write('.')
             sys.stdout.flush()
         
@@ -110,4 +121,5 @@ if __name__ == "__main__":
 
         mae = vabs(distances).mean()
         rmse = sqrt((distances ** 2).mean())
+        
         print("\nepoch: {}, mae/rmse: {}/{}".format(e, mae, rmse))

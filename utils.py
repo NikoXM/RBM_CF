@@ -5,6 +5,12 @@ iteration_str = "\nEnd iter {} - k/lr: {}/{} momentum: {} - MAE/RMSE: {}/{}"
 
 
 def chunker(seq, size):
+    '''
+    function: return a generator of sequences in size of 'size'
+    parameter:
+    seq: sequence
+    size: int
+    '''
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 
@@ -22,6 +28,9 @@ def _expand_line(line, k=5):
 
 
 def expand(data, k=5):
+    '''
+    function: return a rating matrix, with every movie_id's kth w.r.t rating(rounded) being 1, and 0 elsewhere
+    '''
     new = []
     for m in data:
         new.extend(_expand_line(m.tolist()))
@@ -30,6 +39,9 @@ def expand(data, k=5):
 
 
 def revert_expected_value(m, k=5, do_round=True):
+    '''
+    usage: calculate the expected ratings of movies (with rounding the ratings or not)
+    '''
     mask = list(range(1, k+1))
     vround = np.vectorize(round)
 
